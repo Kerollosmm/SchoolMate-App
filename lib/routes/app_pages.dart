@@ -19,12 +19,17 @@ import 'package:school_management_system/teacher/view/TSubject/TSubjectsInfo.dar
 import 'package:school_management_system/teacher/view/TSubject/TlessonScreen.dart';
 
 import '../parent/view/home.dart';
+import '../public/login/login_binding.dart';
 import '../public/login/login_screen.dart';
 import '../public/login/verify_code_teacher.dart';
 import '../student/binding/home.dart';
+import 'package:school_management_system/admin/binding/admin_binding.dart';
+import 'package:school_management_system/admin/view/admin_home.dart';
+import 'package:school_management_system/servant/binding/servant_binding.dart';
+import 'package:school_management_system/servant/view/servant_home.dart';
 import '../student/binding/profile.dart';
 import '../student/view/Adjuncts/adjuncts.dart';
-import '../student/view/chatSearch/chat_search.dart';
+import '../student/view/chatsearch/chat_search.dart';
 import '../teacher/binding/StudentsOfTaskBinding.dart';
 import '../teacher/binding/TAdjunctsBinding.dart';
 import '../teacher/view/Adjuncts/TeacherAdjuncts.dart';
@@ -54,10 +59,24 @@ class AppPages {
   static const tsubjects = '/tsubjectlist';
   static const studentsOfTask = '/studentsOfTask';
   static const tadjuncts = '/tadjuncts';
+  static const adminHome = '/admin_home';
+  static const servantHome = '/servant_home';
+
   static final routes = [
     GetPage(
       name: INITIAL,
       page: () => const LoginScreen(),
+      binding: LoginBinding(),
+    ),
+    GetPage(
+      name: adminHome,
+      page: () => const AdminHome(),
+      binding: AdminBinding(),
+    ),
+    GetPage(
+      name: servantHome,
+      page: () => const ServantHome(),
+      binding: ServantBinding(),
     ),
     GetPage(
       name: Studentprofile,

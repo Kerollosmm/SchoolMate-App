@@ -207,7 +207,7 @@ class TasksCard extends StatelessWidget {
                                       ),
                                     ),
                                     actions: [
-                                      FlatButton(
+                                      TextButton(
                                         child: Text(
                                           "Dismiss",
                                           style: TextStyle(
@@ -220,8 +220,8 @@ class TasksCard extends StatelessWidget {
                                           Navigator.of(context).pop();
                                         },
                                       ),
-                                      FlatButton(
-                                        color: Colors.redAccent,
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
                                         child: Text("Upload",
                                             style: TextStyle(
                                               color: white,

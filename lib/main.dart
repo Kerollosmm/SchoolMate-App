@@ -7,6 +7,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:school_management_system/public/services/local_db_service.dart';
 import 'package:school_management_system/routes/app_pages.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
@@ -29,6 +30,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main() async {
   await GetStorage.init();
+  await LocalDBService.init();
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     await Firebase.initializeApp(
@@ -137,7 +139,7 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: 'RedHatDisplay-Medium',
-          backgroundColor: backgroundColor,
+          scaffoldBackgroundColor: backgroundColor,
         ),
         builder: EasyLoading.init(),
       ),

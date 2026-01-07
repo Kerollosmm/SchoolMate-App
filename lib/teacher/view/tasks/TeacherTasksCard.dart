@@ -107,7 +107,7 @@ class TeacherTasksCard extends StatelessWidget {
                                 content: Text(
                                     "Are you sure you want to delete the task?"),
                                 actions: [
-                                  FlatButton(
+                                  TextButton(
                                     child: Text(
                                       "Dismiss",
                                       style: TextStyle(
@@ -120,8 +120,8 @@ class TeacherTasksCard extends StatelessWidget {
                                       Navigator.of(context).pop();
                                     },
                                   ),
-                                  FlatButton(
-                                    color: Colors.redAccent,
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
                                     child: Text("Confirm",
                                         style: TextStyle(
                                           color: white,

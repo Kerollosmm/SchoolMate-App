@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+import 'core/services/error_logging_service.dart';
 import 'data/datasources/local/hive_service.dart';
 import 'data/datasources/remote/firestore_service.dart';
 import 'data/repositories/auth_repository_impl.dart';
@@ -34,6 +35,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => FirestoreService());
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => Connectivity());
+  sl.registerLazySingleton<ErrorLoggingService>(() => ConsoleErrorLoggingService());
 
   // Repositories
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(

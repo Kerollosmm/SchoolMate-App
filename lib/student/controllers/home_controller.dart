@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_zoom_drawer/config.dart';
 import 'package:get/get.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:school_management_system/public/config/user_information.dart';
 import 'package:school_management_system/student/controllers/subject/subjectController.dart';
 import 'package:school_management_system/student/view/Adjuncts/adjuncts.dart';
 import 'package:school_management_system/student/view/Home/home_body.dart';
 import 'package:school_management_system/student/view/TasksScreen/TasksPage.dart';
-import 'package:school_management_system/student/view/TeacherEmails/Teacherspage.dart';
+import 'package:school_management_system/student/services/program_service.dart';
+import 'dart:developer' as developer;
 
 import '../../main.dart';
 import '../resources/Parent/parentApi.dart';
-import '../resources/Programapi/programsapi.dart';
 import '../view/Chat/chats_page.dart';
 
+// Inject services
 var _SubjectController = Get.put<SubjectController>(SubjectController());
 
 class HomeController extends GetxController {
+  final ProgramService _programService = Get.put(ProgramService());
+
   var currentIndex = 0.obs;
   var bottomNavgationBarPages = [
     HomeScreen(),
@@ -33,19 +33,20 @@ class HomeController extends GetxController {
   var mychilds = [].obs;
 
   getPrograms() async {
-    print('getting programs ...');
-    myprograms.value = await ProgramApi.getNewPrograms();
-    print(myprograms.value);
-    print('Done!');
+    developer.log('getting programs ...');
+    myprograms.value = await _programService.getNewPrograms();
+    developer.log(myprograms.value.toString());
+    developer.log('Done!');
     update();
   }
 
   getchilds() async {
-    print('getting childs ...');
-    print(UserInformation.email);
+    developer.log('getting childs ...');
+    developer.log(UserInformation.email);
+    // TODO: Refactor ParentApi similarly
     mychilds.value = await ParentApi.getStudents(UserInformation.email);
-    print(mychilds.value);
-    print('Done!');
+    developer.log(mychilds.value.toString());
+    developer.log('Done!');
     update();
   }
 
@@ -84,7 +85,6 @@ class HomeController extends GetxController {
 
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
     _SubjectController.getSujects();
     getPrograms();

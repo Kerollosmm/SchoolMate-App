@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is admin
+    // This requires a read, which is acceptable for this phase.
+    // Optimization: Use Custom Claims in the future.
+    function isAdmin() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/servants/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Servants Collection
+    match /servants/{userId} {
+      // Users can read their own profile
+      // Admins can read all
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+
+      // Only Admins can manage servants
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Students Collection
+    match /students/{studentId} {
+      // All authenticated servants can view students
+      allow read: if isAuthenticated();
+
+      // Only Admins can manage students (Import/Delete)
+      // Note: If servants need to update student info, we can relax this.
+      allow write: if isAdmin();
+    }
+
+    // Attendance Collection
+    match /attendance/{recordId} {
+      // All servants can read attendance
+      allow read: if isAuthenticated();
+
+      // Servants can mark attendance
+      // Requirement: "Conflicts are flagged... cannot be silently overwritten"
+      // The application logic handles conflict detection.
+      // Firestore rules here allow the write if authenticated.
+      // We could enforce that they can only write if they are the marker,
+      // but admins/other servants might update status (though protocol says overwrite protection).
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+    }
+  }
+}

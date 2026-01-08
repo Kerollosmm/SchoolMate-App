@@ -1,146 +1,67 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:school_management_system/routes/app_pages.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'service_locator.dart' as di;
+import 'config/theme/app_theme.dart';
+import 'presentation/pages/login_page.dart';
+import 'presentation/pages/main_dashboard.dart';
+import 'presentation/bloc/auth_bloc.dart';
+import 'presentation/bloc/servant_bloc.dart';
+import 'presentation/bloc/attendance_bloc.dart';
+import 'presentation/bloc/sync_cubit.dart';
+import 'presentation/bloc/data_bloc.dart';
 
-import 'public/utils/constant.dart';
-
-const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'high_importance_channel', // id
-    'High Importance Notifications', // title
-    importance: Importance.high,
-    playSound: true);
-
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print('A bg message just showed up :  ${message.messageId}');
-}
-
-Future<void> main() async {
-  await GetStorage.init();
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kIsWeb) {
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: 'AIzaSyBrqsWGI_6CrOkZnG1qTM7CiUcpWUtv2Rw',
-        appId: '1:276187423017:web:c977a55eb9088fbff11738',
-        messagingSenderId: '276187423017',
-        projectId: 'school-management-system-6b1c2',
-        storageBucket: 'school-management-system-6b1c2.appspot.com',
-      ),
-    );
-  } else {
-    await Firebase.initializeApp();
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+  // Initialize Firebase & Hive
+  await Firebase.initializeApp();
+  await Hive.initFlutter();
 
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    await FlutterDownloader.initialize(debug: true);
-  }
-  runApp(Phoenix(child: const MyApp()));
+  // Initialize DI and Hive Adapters
+  await di.init();
+
+  runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification notification = message.notification!;
-      AndroidNotification? android = message.notification?.android;
-      if (android != null) {
-        flutterLocalNotificationsPlugin.show(
-            notification.hashCode,
-            notification.title,
-            notification.body,
-            NotificationDetails(
-              android: AndroidNotificationDetails(
-                channel.id,
-                channel.name,
-                color: Colors.blue,
-                playSound: true,
-                icon: '@mipmap/ic_launcher',
-              ),
-            ));
-      }
-    });
-
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('A new onMessageOpenedApp event was published!');
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
-      if (notification != null && android != null) {
-        showDialog(
-            context: context,
-            builder: (_) {
-              return AlertDialog(
-                title: Text(notification.title!),
-                content: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [Text(notification.body!)],
-                  ),
-                ),
-              );
-            });
-      }
-    });
-  }
-
-  void showNotification() {
-    flutterLocalNotificationsPlugin.show(
-        0,
-        "Testing ",
-        "How you doin ?",
-        NotificationDetails(
-            android: AndroidNotificationDetails(channel.id, channel.name,
-                importance: Importance.high,
-                color: Colors.blue,
-                playSound: true,
-                icon: '@mipmap/ic_launcher')));
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(428, 926),
-      builder: () => GetMaterialApp(
-        initialRoute: AppPages.Splashscreen,
-        getPages: AppPages.routes,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => di.sl<AuthBloc>()..add(AuthCheckRequested())),
+        BlocProvider(create: (_) => di.sl<ServantBloc>()),
+        BlocProvider(create: (_) => di.sl<AttendanceBloc>()),
+        BlocProvider(create: (_) => di.sl<SyncCubit>()),
+        BlocProvider(create: (_) => di.sl<DataBloc>()),
+      ],
+      child: MaterialApp(
+        title: 'CSMS Phase 1',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          fontFamily: 'RedHatDisplay-Medium',
-          backgroundColor: backgroundColor,
-        ),
-        builder: EasyLoading.init(),
+        theme: AppTheme.lightTheme,
+        home: const AuthWrapper(),
       ),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is AuthAuthenticated) {
+          return const MainDashboard();
+        }
+        return const LoginPage();
+      },
     );
   }
 }

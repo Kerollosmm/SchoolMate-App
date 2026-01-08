@@ -11,6 +11,8 @@ import 'package:school_management_system/public/services/local_db_service.dart';
 import 'package:school_management_system/routes/app_pages.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:developer' as developer;
 
 import 'public/utils/constant.dart';
 
@@ -25,21 +27,22 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print('A bg message just showed up :  ${message.messageId}');
+  developer.log('A bg message just showed up :  ${message.messageId}');
 }
 
 Future<void> main() async {
+  await dotenv.load(fileName: ".env");
   await GetStorage.init();
   await LocalDBService.init();
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: 'AIzaSyBrqsWGI_6CrOkZnG1qTM7CiUcpWUtv2Rw',
-        appId: '1:276187423017:web:c977a55eb9088fbff11738',
-        messagingSenderId: '276187423017',
-        projectId: 'school-management-system-6b1c2',
-        storageBucket: 'school-management-system-6b1c2.appspot.com',
+      options: FirebaseOptions(
+        apiKey: dotenv.env['API_KEY'] ?? '',
+        appId: dotenv.env['APP_ID'] ?? '',
+        messagingSenderId: dotenv.env['MESSAGING_SENDER_ID'] ?? '',
+        projectId: dotenv.env['PROJECT_ID'] ?? '',
+        storageBucket: dotenv.env['STORAGE_BUCKET'] ?? '',
       ),
     );
   } else {
@@ -63,7 +66,7 @@ Future<void> main() async {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -75,9 +78,9 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification notification = message.notification!;
+      RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
-      if (android != null) {
+      if (notification != null && android != null) {
         flutterLocalNotificationsPlugin.show(
             notification.hashCode,
             notification.title,
@@ -95,7 +98,7 @@ class _MyAppState extends State<MyApp> {
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('A new onMessageOpenedApp event was published!');
+      developer.log('A new onMessageOpenedApp event was published!');
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
       if (notification != null && android != null) {
@@ -133,7 +136,9 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: const Size(428, 926),
-      builder: () => GetMaterialApp(
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) => GetMaterialApp(
         initialRoute: AppPages.Splashscreen,
         getPages: AppPages.routes,
         debugShowCheckedModeBanner: false,

@@ -2,8 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:developer' as developer;
 
 import '../config/user_information.dart';
+
+// Simple Result class for error handling
+class Result<T> {
+  final T? data;
+  final String? error;
+  final bool isSuccess;
+
+  Result.success(this.data) : error = null, isSuccess = true;
+  Result.failure(this.error) : data = null, isSuccess = false;
+}
 
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -12,11 +23,10 @@ class AuthMethods {
   GetStorage storage = GetStorage();
   var uid;
 
-  Future<String> loginStudent({
+  Future<Result<String>> loginStudent({
     required String email,
     required String password,
   }) async {
-    String res = "Some error occured";
     try {
       if (email.isNotEmpty || password.isNotEmpty) {
         await _auth.signInWithEmailAndPassword(
@@ -24,15 +34,13 @@ class AuthMethods {
         String currentuser = _auth.currentUser!.uid;
         UserInformation.User_uId = currentuser;
         await storage.write('uid', UserInformation.User_uId);
-        res = "success";
-        print("eeeeeeeeeeeeeeee");
-        print(UserInformation.User_uId);
+        developer.log("User logged in successfully: ${UserInformation.User_uId}");
+        return Result.success("success");
       } else {
-        res = "Please enter all the fields";
+        return Result.failure("Please enter all the fields");
       }
     } catch (err) {
-      res = err.toString();
+      return Result.failure(err.toString());
     }
-    return res;
   }
 }

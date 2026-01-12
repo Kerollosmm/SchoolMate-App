@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:school_management_system/student/controllers/SearchController.dart';
+import 'package:school_management_system/student/controllers/SearchController.dart' as custom;
 import 'package:school_management_system/student/models/user.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -102,7 +102,7 @@ class ChatSearch extends StatelessWidget {
 }
 
 class MySearchDelegate extends SearchDelegate {
-  SearchController controller = Get.put(SearchController());
+  custom.SearchController controller = Get.put(custom.SearchController());
   final teachersNames = ["Yassin", "osama"];
 
   final recentTeachers = [];

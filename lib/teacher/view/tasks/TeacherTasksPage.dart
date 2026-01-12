@@ -577,7 +577,7 @@ class AddButton extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(36, 0, 36, 36),
       child: ElevatedButton(
-          style: ElevatedButton.styleFrom(primary: primaryColor),
+          style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
           onPressed: onpress,
           child: Center(
             child: Text(
